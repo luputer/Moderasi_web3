@@ -21,7 +21,6 @@ function App() {
   const [submitStatus, setSubmitStatus] = useState(null);
   const [posts, setPosts] = useState([]);
 
-  // 🔐 Create and reuse agent + actor when logged in
   useEffect(() => {
     AuthClient.create().then((client) => {
       setAuthClient(client);
@@ -111,6 +110,20 @@ function App() {
       }
     } catch (err) {
       console.error('Gagal menghapus post:', err);
+    }
+  };
+
+  const handleVote = async (id) => {
+    if (!backendActor) return;
+    try {
+      const success = await backendActor.votePost(id);
+      if (success) {
+        loadPosts();
+      } else {
+        alert('🚫 Anda sudah pernah vote post ini.');
+      }
+    } catch (err) {
+      console.error('Gagal vote:', err);
     }
   };
 
@@ -235,6 +248,23 @@ function App() {
                 <p>
                   <strong>Votes:</strong> {post.votes.toString()}
                 </p>
+
+                <button
+                  onClick={() => handleVote(Number(post.id))}
+                  style={{
+                    marginTop: '0.5rem',
+                    marginRight: '0.5rem',
+                    backgroundColor: '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  👍 Vote
+                </button>
+
                 {post.author.toText() === principal && (
                   <button
                     onClick={() => handleDelete(Number(post.id))}
