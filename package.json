@@ -14,5 +14,8 @@
   "type": "module",
   "workspaces": [
     "src/moderasi_papan_frontend"
-  ]
+  ],
+  "dependencies": {
+    "@dfinity/auth-client": "^2.4.1"
+  }
 }
