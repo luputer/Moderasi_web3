@@ -1,0 +1,26 @@
+{
+  "canisters": {
+    "moderasi_papan_backend": {
+      "main": "src/moderasi_papan_backend/main.mo",
+      "type": "motoko"
+    },
+    "moderasi_papan_frontend": {
+      "dependencies": [
+        "moderasi_papan_backend"
+      ],
+      "source": [
+        "src/moderasi_papan_frontend/dist"
+      ],
+      "type": "assets",
+      "workspace": "moderasi_papan_frontend"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
