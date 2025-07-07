@@ -1,0 +1,347 @@
+import React, { useState, useEffect } from 'react';
+import { AuthClient } from '@dfinity/auth-client';
+import { HttpAgent, Actor } from '@dfinity/agent';
+import sha256 from 'crypto-js/sha256';
+import Swal from 'sweetalert2';
+
+import {
+  idlFactory as backend_idl,
+  canisterId as backend_id,
+} from 'declarations/moderasi_papan_backend';
+
+const identityProvider =
+  process.env.DFX_NETWORK === 'ic'
+    ? 'https://identity.ic0.app'
+    : 'http://uxrrr-q7777-77774-qaaaq-cai.localhost:4943/';
+
+function App() {
+  const [authClient, setAuthClient] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [principal, setPrincipal] = useState('');
+  const [backendActor, setBackendActor] = useState(null);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [postContent, setPostContent] = useState('');
+  const [submitStatus, setSubmitStatus] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [registerMode, setRegisterMode] = useState(false);
+
+  useEffect(() => {
+    AuthClient.create().then((client) => {
+      setAuthClient(client);
+      client.isAuthenticated().then(async (loggedIn) => {
+        setIsAuthenticated(loggedIn);
+        if (loggedIn) {
+          const identity = client.getIdentity();
+          const principalId = identity.getPrincipal().toText();
+          setPrincipal(principalId);
+
+          const agent = new HttpAgent({ identity });
+          if (process.env.DFX_NETWORK !== 'ic') {
+            await agent.fetchRootKey();
+          }
+
+          const actor = Actor.createActor(backend_idl, {
+            agent,
+            canisterId: backend_id,
+          });
+
+          setBackendActor(actor);
+          loadPosts(actor);
+
+          // Optionally fetch username
+          const res = await actor.getUsername(identity.getPrincipal());
+          if (res.length > 0) setUsername(res[0]);
+        }
+      });
+    });
+  }, []);
+
+  const login = async () => {
+    await authClient.login({
+      identityProvider,
+      onSuccess: async () => {
+        setIsAuthenticated(true);
+        const identity = authClient.getIdentity();
+        const principalId = identity.getPrincipal().toText();
+        setPrincipal(principalId);
+
+        const agent = new HttpAgent({ identity });
+        if (process.env.DFX_NETWORK !== 'ic') {
+          await agent.fetchRootKey();
+        }
+
+        const actor = Actor.createActor(backend_idl, {
+          agent,
+          canisterId: backend_id,
+        });
+
+        setBackendActor(actor);
+        loadPosts(actor);
+
+        // Optionally fetch username
+        const res = await actor.getUsername(identity.getPrincipal());
+        if (res.length > 0) setUsername(res[0]);
+      },
+    });
+  };
+
+  const logout = async () => {
+    await authClient.logout();
+    setIsAuthenticated(false);
+    setPrincipal('');
+    setBackendActor(null);
+    setSubmitStatus(null);
+    setPostContent('');
+    setPosts([]);
+    setUsername('');
+    setPassword('');
+  };
+
+  const handleRegister = async () => {
+    if (!backendActor) return;
+
+    const { value: formValues } = await Swal.fire({
+      title: 'Daftar atau Ganti Username',
+      html:
+        '<input id="swal-input1" class="swal2-input" placeholder="Username">' +
+        '<input id="swal-input2" class="swal2-input" placeholder="Password" type="password">',
+      focusConfirm: false,
+      preConfirm: () => {
+        return [
+          document.getElementById('swal-input1').value,
+          document.getElementById('swal-input2').value
+        ];
+      }
+    });
+
+    if (formValues) {
+      const [newUsername, newPassword] = formValues;
+      if (newUsername && newPassword) {
+        const passwordHash = sha256(newPassword).toString();
+        const ok = await backendActor.register(newUsername, passwordHash);
+        if (ok) {
+          Swal.fire('Berhasil!', 'Username berhasil didaftarkan.', 'success');
+          setUsername(newUsername);
+        } else {
+          Swal.fire('Gagal!', 'Gagal mendaftar username.', 'error');
+        }
+      } else {
+        Swal.fire('Gagal!', 'Username dan password tidak boleh kosong.', 'error');
+      }
+    }
+  };
+
+  const handleSubmitPost = async (e) => {
+    e.preventDefault();
+    if (!backendActor) {
+      setSubmitStatus('❌ Harap login terlebih dahulu.');
+      return;
+    }
+    try {
+      const postId = await backendActor.addPost(postContent);
+      setSubmitStatus(`✅ Post berhasil ditambahkan! ID: ${postId}`);
+      setPostContent('');
+      loadPosts();
+    } catch (err) {
+      console.error(err);
+      setSubmitStatus('❌ Gagal mengirim post.');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!backendActor) return;
+    try {
+      const success = await backendActor.deletePost(id);
+      if (success) {
+        setPosts((prev) => prev.filter((p) => Number(p.id) !== Number(id)));
+      }
+    } catch (err) {
+      console.error('Gagal menghapus post:', err);
+    }
+  };
+
+  const handleVote = async (id) => {
+    if (!backendActor) return;
+    try {
+      const success = await backendActor.votePost(id);
+      if (success) {
+        loadPosts();
+      } else {
+        Swal.fire('Gagal!', 'Anda sudah pernah vote post ini.', 'error');
+      }
+    } catch (err) {
+      console.error('Gagal vote:', err);
+    }
+  };
+
+  const loadPosts = async (actorInstance = backendActor) => {
+    if (!actorInstance) return;
+    try {
+      const data = await actorInstance.getPosts();
+      const sorted = data.sort((a, b) => Number(b.id) - Number(a.id));
+      setPosts(sorted);
+    } catch (err) {
+      console.error('Gagal memuat postingan:', err);
+    }
+  };
+
+  return (
+    <main
+      style={{
+        padding: '2rem',
+        maxWidth: '800px',
+        margin: 'auto',
+        fontFamily: 'system-ui, sans-serif',
+      }}
+    >
+      <h1 style={{ color: '#4f46e5' }}>🔐 Internet Identity + Username</h1>
+
+      {!isAuthenticated ? (
+        <button
+          onClick={login}
+          style={{
+            padding: '0.5rem 1rem',
+            background: '#4f46e5',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+          }}
+        >
+          Login dengan Internet Identity
+        </button>
+      ) : (
+        <>
+          <p>
+            <strong>Principal:</strong> {principal}
+          </p>
+          <button
+            onClick={logout}
+            style={{
+              marginBottom: '1rem',
+              padding: '0.4rem 1rem',
+              background: '#ef4444',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+            }}
+          >
+            Logout
+          </button>
+
+          <p>
+              <strong>Username:</strong> {username}{' '}
+              <button onClick={handleRegister} style={{ marginLeft: 8 }}>Ubah</button>
+            </p>
+
+          <form onSubmit={handleSubmitPost}>
+            <h3>Tulis Post Baru</h3>
+            <textarea
+              rows="4"
+              cols="60"
+              placeholder="Apa yang ingin kamu bagikan?"
+              value={postContent}
+              onChange={(e) => setPostContent(e.target.value)}
+              required
+              style={{
+                padding: '0.5rem',
+                borderRadius: '6px',
+                border: '1px solid #ccc',
+                width: '100%',
+              }}
+            />
+            <br />
+            <button
+              type="submit"
+              style={{
+                marginTop: '0.5rem',
+                padding: '0.4rem 1rem',
+                background: '#10b981',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+              }}
+            >
+              Kirim Post
+            </button>
+            
+            {submitStatus && (
+              <p style={{ marginTop: '0.5rem', fontWeight: 'bold' }}>
+                {submitStatus}
+              </p>
+            )}
+          </form>
+
+          <h3 style={{ marginTop: '2rem' }}>📋 Daftar Post</h3>
+          {posts.length === 0 ? (
+            <p>Belum ada postingan.</p>
+          ) : (
+            posts.map((post) => (
+              <div
+                key={Number(post.id)}
+                style={{
+                  background: '#fff',
+                  padding: '1rem',
+                  marginTop: '1rem',
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                }}
+              >
+                <p>
+                  <strong>ID:</strong> {post.id.toString()}
+                </p>
+                <p>
+                  <strong>Author:</strong> {post.username} ({post.author.toText()})
+                </p>
+                <p>
+                  <strong>Content:</strong> {post.content}
+                </p>
+                <p>
+                  <strong>Votes:</strong> {post.votes.toString()}
+                </p>
+
+                <button
+                  onClick={() => handleVote(Number(post.id))}
+                  style={{
+                    marginTop: '0.5rem',
+                    marginRight: '0.5rem',
+                    backgroundColor: '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  👍 Vote
+                </button>
+
+                {post.author.toText() === principal && (
+                  <button
+                    onClick={() => handleDelete(Number(post.id))}
+                    style={{
+                      marginTop: '0.5rem',
+                      backgroundColor: '#dc2626',
+                      color: 'white',
+                      border: 'none',
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '5px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    🗑️ Hapus Post
+                  </button>
+                )}
+              </div>
+            ))
+          )}
+        </>
+      )}
+    </main>
+  );
+}
+
+export default App;
