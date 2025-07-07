@@ -5,10 +5,10 @@ import {
   Routes,
   Route
 } from "react-router-dom";
-import Header from './componnets/Header';
-import Footer from './componnets/Footer';
-import LandingPage from './componnets/LandingPage';
-import MainApp from './componnets/MainApp';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import LandingPage from './components/LandingPage';
+import MainApp from './components/MainApp';
 
 export const ThemeContext = createContext(null);
 
