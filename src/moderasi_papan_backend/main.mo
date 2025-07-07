@@ -81,19 +81,26 @@ actor {
       case (null) { return false };
       case (?post) {
         if (Array.find<Principal>(post.voters, func x = x == msg.caller) != null) { return false };
+        let updatedVotes = post.votes + 1;
         let updatedPost : Post = {
           id = post.id;
           author = post.author;
           content = post.content;
-          votes = post.votes + 1;
+          votes = updatedVotes;
           voters = Array.append<Principal>(post.voters, [msg.caller]);
           username = post.username;
         };
-        posts.put(Nat.toText(id), updatedPost);
-        return true;
+        if (updatedVotes > 3) {
+          // Jika vote lebih dari 3, hapus post
+          ignore posts.remove(Nat.toText(id));
+          return true;
+        } else {
+          posts.put(Nat.toText(id), updatedPost);
+          return true;
+        }
       }
     }
-  };
+};
 
   public shared(msg) func deletePost(id : Nat) : async Bool {
     if (Principal.isAnonymous(msg.caller)) {
