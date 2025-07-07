@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AuthClient } from '@dfinity/auth-client';
 import { HttpAgent, Actor } from '@dfinity/agent';
 import sha256 from 'crypto-js/sha256';
+import { LogIn, LogOut, ThumbsUp, Trash2, User, Send, ListTodo } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 import {
@@ -187,56 +188,28 @@ function App() {
   };
 
   return (
-    <main
-      style={{
-        padding: '2rem',
-        maxWidth: '800px',
-        margin: 'auto',
-        fontFamily: 'system-ui, sans-serif',
-      }}
-    >
-      <h1 style={{ color: '#4f46e5' }}>🔐 Internet Identity + Username</h1>
+    <main className="main-app-container">
+      <h1 className="main-app-title">🔐 Internet Identity + Username</h1>
 
       {!isAuthenticated ? (
-        <button
-          onClick={login}
-          style={{
-            padding: '0.5rem 1rem',
-            background: '#4f46e5',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-          }}
-        >
-          Login dengan Internet Identity
+        <button onClick={login} className="btn primary-btn">
+          <LogIn size={20} style={{ marginRight: '8px' }} /> Login dengan Internet Identity
         </button>
       ) : (
         <>
           <p>
             <strong>Principal:</strong> {principal}
           </p>
-          <button
-            onClick={logout}
-            style={{
-              marginBottom: '1rem',
-              padding: '0.4rem 1rem',
-              background: '#ef4444',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-            }}
-          >
-            Logout
+          <button onClick={logout} className="btn danger-btn logout-btn">
+            <LogOut size={20} style={{ marginRight: '8px' }} /> Logout
           </button>
 
           <p>
               <strong>Username:</strong> {username}{' '}
-              <button onClick={handleRegister} style={{ marginLeft: 8 }}>Ubah</button>
+              <button onClick={handleRegister} className="btn secondary-btn username-btn"><User size={16} style={{ marginRight: '4px' }} /> Ubah</button>
             </p>
 
-          <form onSubmit={handleSubmitPost}>
+          <form onSubmit={handleSubmitPost} className="post-form">
             <h3>Tulis Post Baru</h3>
             <textarea
               rows="4"
@@ -245,51 +218,26 @@ function App() {
               value={postContent}
               onChange={(e) => setPostContent(e.target.value)}
               required
-              style={{
-                padding: '0.5rem',
-                borderRadius: '6px',
-                border: '1px solid #ccc',
-                width: '100%',
-              }}
+              className="post-textarea"
             />
             <br />
-            <button
-              type="submit"
-              style={{
-                marginTop: '0.5rem',
-                padding: '0.4rem 1rem',
-                background: '#10b981',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-              }}
-            >
-              Kirim Post
+            <button type="submit" className="btn success-btn submit-post-btn">
+              <Send size={20} style={{ marginRight: '8px' }} /> Kirim Post
             </button>
             
             {submitStatus && (
-              <p style={{ marginTop: '0.5rem', fontWeight: 'bold' }}>
+              <p className="submit-status">
                 {submitStatus}
               </p>
             )}
           </form>
 
-          <h3 style={{ marginTop: '2rem' }}>📋 Daftar Post</h3>
+          <h3 className="posts-list-title"><ListTodo size={24} style={{ marginRight: '8px' }} /> Daftar Post</h3>
           {posts.length === 0 ? (
             <p>Belum ada postingan.</p>
           ) : (
             posts.map((post) => (
-              <div
-                key={Number(post.id)}
-                style={{
-                  background: '#fff',
-                  padding: '1rem',
-                  marginTop: '1rem',
-                  borderRadius: '8px',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-                }}
-              >
+              <div key={Number(post.id)} className="post-item">
                 <p>
                   <strong>ID:</strong> {post.id.toString()}
                 </p>
@@ -303,36 +251,13 @@ function App() {
                   <strong>Votes:</strong> {post.votes.toString()}
                 </p>
 
-                <button
-                  onClick={() => handleVote(Number(post.id))}
-                  style={{
-                    marginTop: '0.5rem',
-                    marginRight: '0.5rem',
-                    backgroundColor: '#3b82f6',
-                    color: 'white',
-                    border: 'none',
-                    padding: '0.4rem 0.8rem',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  👍 Vote
+                <button onClick={() => handleVote(Number(post.id))} className="btn vote-btn">
+                  <ThumbsUp size={16} style={{ marginRight: '4px' }} /> Vote
                 </button>
 
                 {post.author.toText() === principal && (
-                  <button
-                    onClick={() => handleDelete(Number(post.id))}
-                    style={{
-                      marginTop: '0.5rem',
-                      backgroundColor: '#dc2626',
-                      color: 'white',
-                      border: 'none',
-                      padding: '0.4rem 0.8rem',
-                      borderRadius: '5px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    🗑️ Hapus Post
+                  <button onClick={() => handleDelete(Number(post.id))} className="btn delete-btn">
+                    <Trash2 size={16} style={{ marginRight: '4px' }} /> Hapus Post
                   </button>
                 )}
               </div>

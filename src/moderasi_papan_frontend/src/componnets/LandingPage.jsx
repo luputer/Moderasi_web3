@@ -1,28 +1,30 @@
 
 import React from 'react';
+import Web3DAnimation from './Web3DAnimation';
 
 const LandingPage = () => {
   return (
     <div className="landing-page">
+      <Web3DAnimation />
       <section className="hero">
         <h1>Selamat Datang di Moderasi Papan</h1>
-        <p>Platform untuk diskusi dan berbagi ide secara terbuka dan aman.</p>
-        <button onClick={() => window.location.href = '/main'}>Mulai</button>
+        <p>Platform terdesentralisasi untuk berbagi ide dan berdiskusi.</p>
+        <button onClick={() => window.location.href = '/main'}>Mulai Sekarang</button>
       </section>
       <section className="features">
         <h2>Fitur Utama</h2>
         <div className="feature-list">
           <div className="feature-item">
-            <h3>Diskusi Terbuka</h3>
-            <p>Bagikan ide dan pendapat Anda dengan komunitas.</p>
+            <h3>Desentralisasi Penuh</h3>
+            <p>Dibangun di atas Internet Computer, memastikan sensor-resistance dan ketersediaan tinggi.</p>
           </div>
           <div className="feature-item">
-            <h3>Moderasi Konten</h3>
-            <p>Sistem moderasi untuk menjaga diskusi tetap sehat.</p>
+            <h3>Identitas Aman</h3>
+            <p>Gunakan Internet Identity untuk login yang aman dan anonim.</p>
           </div>
           <div className="feature-item">
-            <h3>Aman dan Terpercaya</h3>
-            <p>Dibangun di atas Internet Computer untuk keamanan data.</p>
+            <h3>Konten Terverifikasi</h3>
+            <p>Sistem moderasi berbasis komunitas untuk menjaga kualitas diskusi.</p>
           </div>
         </div>
       </section>
