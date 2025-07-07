@@ -16,6 +16,7 @@
     "src/moderasi_papan_frontend"
   ],
   "dependencies": {
-    "@dfinity/auth-client": "^2.4.1"
+    "@dfinity/auth-client": "^2.4.1",
+    "crypto-js": "^4.2.0"
   }
 }

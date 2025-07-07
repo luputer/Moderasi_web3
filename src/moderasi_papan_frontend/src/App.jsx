@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AuthClient } from '@dfinity/auth-client';
 import { HttpAgent, Actor } from '@dfinity/agent';
+import sha256 from 'crypto-js/sha256'; // Use any hash library you like
 
 import {
   idlFactory as backend_idl,
@@ -17,9 +18,12 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [principal, setPrincipal] = useState('');
   const [backendActor, setBackendActor] = useState(null);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [postContent, setPostContent] = useState('');
   const [submitStatus, setSubmitStatus] = useState(null);
   const [posts, setPosts] = useState([]);
+  const [registerMode, setRegisterMode] = useState(false);
 
   useEffect(() => {
     AuthClient.create().then((client) => {
@@ -43,6 +47,10 @@ function App() {
 
           setBackendActor(actor);
           loadPosts(actor);
+
+          // Optionally fetch username
+          const res = await actor.getUsername(identity.getPrincipal());
+          if (res.length > 0) setUsername(res[0]);
         }
       });
     });
@@ -69,6 +77,10 @@ function App() {
 
         setBackendActor(actor);
         loadPosts(actor);
+
+        // Optionally fetch username
+        const res = await actor.getUsername(identity.getPrincipal());
+        if (res.length > 0) setUsername(res[0]);
       },
     });
   };
@@ -81,6 +93,22 @@ function App() {
     setSubmitStatus(null);
     setPostContent('');
     setPosts([]);
+    setUsername('');
+    setPassword('');
+  };
+
+  // Register username and password (password is hashed)
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    if (!backendActor) return;
+    const passwordHash = sha256(password).toString();
+    const ok = await backendActor.register(username, passwordHash);
+    if (ok) {
+      setSubmitStatus('✅ Username berhasil didaftarkan!');
+      setRegisterMode(false);
+    } else {
+      setSubmitStatus('❌ Gagal mendaftar username.');
+    }
   };
 
   const handleSubmitPost = async (e) => {
@@ -89,7 +117,6 @@ function App() {
       setSubmitStatus('❌ Harap login terlebih dahulu.');
       return;
     }
-
     try {
       const postId = await backendActor.addPost(postContent);
       setSubmitStatus(`✅ Post berhasil ditambahkan! ID: ${postId}`);
@@ -147,7 +174,7 @@ function App() {
         fontFamily: 'system-ui, sans-serif',
       }}
     >
-      <h1 style={{ color: '#4f46e5' }}>🔐 Internet Identity</h1>
+      <h1 style={{ color: '#4f46e5' }}>🔐 Internet Identity + Username</h1>
 
       {!isAuthenticated ? (
         <button
@@ -182,6 +209,47 @@ function App() {
           >
             Logout
           </button>
+
+          {!username || registerMode ? (
+            <form onSubmit={handleRegister}>
+              <h3>Daftar Username</h3>
+              <input
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #ccc' }}
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #ccc', marginLeft: '0.5rem' }}
+              />
+              <button
+                type="submit"
+                style={{
+                  marginLeft: '0.5rem',
+                  padding: '0.4rem 1rem',
+                  background: '#4f46e5',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                }}
+              >
+                Simpan Username
+              </button>
+            </form>
+          ) : (
+            <p>
+              <strong>Username:</strong> {username}{' '}
+              <button onClick={() => setRegisterMode(true)} style={{ marginLeft: 8 }}>Ubah</button>
+            </p>
+          )}
 
           <form onSubmit={handleSubmitPost}>
             <h3>Tulis Post Baru</h3>
@@ -240,7 +308,7 @@ function App() {
                   <strong>ID:</strong> {post.id.toString()}
                 </p>
                 <p>
-                  <strong>Author:</strong> {post.author.toText()}
+                  <strong>Author:</strong> {post.username} ({post.author.toText()})
                 </p>
                 <p>
                   <strong>Content:</strong> {post.content}

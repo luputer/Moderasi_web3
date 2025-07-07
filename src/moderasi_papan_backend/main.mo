@@ -13,14 +13,48 @@ actor {
     content : Text;
     votes : Nat;
     voters : [Principal];
+    username : Text; // Store username with post
   };
 
   private var nextId : Nat = 0;
   private var posts = HashMap.HashMap<Text, Post>(32, Text.equal, Text.hash);
 
+  // Map principal to (username, passwordHash)
+  private var userMap = HashMap.HashMap<Principal, (Text, Text)>(32, Principal.equal, Principal.hash);
+
+  // Register username and password hash for the current principal
+  public shared(msg) func register(username: Text, passwordHash: Text) : async Bool {
+    if (Principal.isAnonymous(msg.caller)) return false;
+    userMap.put(msg.caller, (username, passwordHash));
+    return true;
+  };
+
+  // Verify username and password hash for the current principal
+  public query func verify(username: Text, passwordHash: Text, p: Principal) : async Bool {
+    switch (userMap.get(p)) {
+      case (null) { return false };
+      case (?data) {
+        let (savedUsername, savedHash) = data;
+        return savedUsername == username and savedHash == passwordHash;
+      }
+    }
+  };
+
+  // Get username for a principal
+  public query func getUsername(p: Principal) : async ?Text {
+    switch (userMap.get(p)) {
+      case (null) { return null };
+      case (?data) { return ?data.0 };
+    }
+  };
+
   public shared(msg) func addPost(content : Text) : async Nat {
     if (Principal.isAnonymous(msg.caller)) {
       throw Error.reject("Anonymous users are not allowed.");
+    };
+    let username = switch (userMap.get(msg.caller)) {
+      case (null) { "Unknown" };
+      case (?data) { data.0 };
     };
     let post : Post = {
       id = nextId;
@@ -28,6 +62,7 @@ actor {
       content = content;
       votes = 0;
       voters = [];
+      username = username;
     };
     posts.put(Nat.toText(nextId), post);
     nextId += 1;
@@ -52,6 +87,7 @@ actor {
           content = post.content;
           votes = post.votes + 1;
           voters = Array.append<Principal>(post.voters, [msg.caller]);
+          username = post.username;
         };
         posts.put(Nat.toText(id), updatedPost);
         return true;
