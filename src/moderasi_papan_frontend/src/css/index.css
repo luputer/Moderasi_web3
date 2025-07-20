@@ -1,0 +1,279 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root, .app-container {
+  height: 100%;
+}
+
+/* body */
+body {
+  @apply m-0 font-sans bg-gray-100 text-gray-700 transition-colors duration-300 ease-in-out;
+}
+
+    /* body.dark */
+    body.dark {
+      @apply bg-gray-800 text-gray-200;
+    }
+
+    /* body.dark .header */
+    body.dark .header {
+      @apply bg-gray-900 shadow-[0_2px_4px_rgba0,0,0,0.3];
+    }
+
+    body.dark .header nav a {
+      @apply text-gray-300;
+    }
+
+    body.dark .hero {
+      @apply bg-[rgba79,70,229,0.6];
+    }
+
+    body.dark .features {
+      @apply bg-gray-800;
+    }
+
+    body.dark .feature-item {
+      @apply bg-gray-700 shadow-lg;
+    }
+
+    body.dark .feature-item h3,
+    body.dark .feature-item p {
+      @apply text-gray-200;
+    }
+
+    body.dark .footer {
+      @apply bg-gray-800;
+    }
+
+    body.dark .swal2-popup {
+      @apply bg-gray-700 text-gray-200;
+    }
+
+    body.dark .swal2-title {
+      @apply text-gray-200;
+    }
+
+    body.dark .swal2-html-container {
+      @apply text-gray-200;
+    }
+
+    body.dark .swal2-input {
+      @apply bg-gray-600 text-gray-200 border border-gray-500;
+    }
+
+    body.dark .swal2-styled.swal2-confirm {
+      @apply bg-purple-600;
+    }
+
+    body.dark .swal2-styled.swal2-cancel {
+      @apply bg-red-500;
+    }
+/* body */
+
+/* MainApp */
+.main-app-container {
+  @apply p-8 max-w-[800px] mx-auto font-sans;
+}
+
+.main-app-title {
+  @apply text-purple-600 mb-6;
+}
+
+.btn {
+  @apply p-2 px-4 border-none rounded-md cursor-pointer transition-all duration-300 ease-in-out;
+}
+
+.btn:hover {
+  @apply opacity-90;
+}
+
+.primary-btn {
+  @apply bg-purple-600 text-white;
+}
+
+.danger-btn {
+  @apply bg-red-500 text-white;
+}
+
+.success-btn {
+  @apply bg-green-500 text-white;
+}
+
+.secondary-btn {
+  @apply bg-gray-500 text-white;
+}
+
+.logout-btn {
+  @apply mb-4;
+}
+
+.username-btn {
+  @apply ml-2;
+}
+
+/* MainApp */
+
+/* Post form */
+.post-form {
+  @apply mt-8 p-6 bg-white rounded-lg shadow-md;
+}
+
+.post-textarea {
+  @apply 
+          p-2 box-border 
+          mb-2 rounded-md border 
+          border-gray-300 w-full transition-all 
+          duration-300 ease-in-out
+        ;
+}
+
+.submit-post-btn {
+  @apply mt-2;
+}
+
+.submit-status {
+  @apply mt-2 font-bold;
+}
+
+.posts-list-title {
+  @apply mt-8 text-gray-700;
+}
+
+.post-item {
+  @apply p-4 mt-4 bg-white rounded-lg shadow-md 
+          transition-all duration-300 ease-in-out hover:bg-gray-50
+        ;
+}
+
+.post-item p {
+  @apply mb-2 text-gray-700;
+}
+
+.post-item p:last-child {
+  @apply mb-0;
+}
+
+.vote-btn {
+  @apply mt-2 mr-2 px-4 py-2 text-white bg-blue-500 rounded-md transition-all duration-300 ease-in-out hover:bg-blue-600;
+}
+
+.delete-btn {
+  @apply mt-2 mr-2 px-4 py-2 text-white bg-red-500 rounded-md transition-all duration-300 ease-in-out hover:bg-red-600;
+}
+
+/* post form */
+
+/* Header */
+.header {
+  @apply flex justify-between items-center pt-4 pl-8 bg-white shadow-md;
+}
+
+.header .logo {
+  @apply flex items-center;
+}
+
+.header .logo img {
+  @apply mr-2 h-10;
+}
+
+.header .logo span {
+  @apply text-2xl font-bold;
+}
+
+.header nav a {
+  @apply ml-6 font-medium no-underline text-gray-600;
+}
+
+.theme-toggle-btn {
+  @apply ml-6 p-2 rounded-full border-none cursor-pointer bg-transparent text-gray-600 flex items-center justify-center transition-all duration-300 ease-in-out;
+}
+
+.theme-toggle-btn:hover {
+  @apply bg-gray-200;
+}
+
+body.dark .theme-toggle-btn {
+  @apply text-gray-200;
+}
+
+body.dark .theme-toggle-btn:hover {
+  @apply bg-gray-800;
+}
+
+/* Header */
+
+
+/* Landing-page */
+  .landing-page {
+    @apply text-center relative hidden;
+  }
+
+  .landing-page .hero {
+    @apply relative z-10 pt-16 pl-8 bg-purple-700/80 text-white;
+  }
+
+  .hero h1 {
+    @apply text-5xl mb-4;
+  }
+
+  .hero p {
+    @apply mb-8 text-lg;
+  }
+
+  .hero button {
+    @apply 
+      py-3 px-8 bg-white text-purple-600 border-none 
+      rounded-md cursor-pointer font-normal transition-all 
+      duration-300 ease-in-out hover:bg-gray-100
+      ;
+  }
+
+  .hero button:hover {
+    @apply bg-gray-300;
+  } 
+  
+    /* Features */
+        .features {
+          @apply relative pt-16 pl-8 bg-gray-100;
+        }
+
+        .features h2 {
+          @apply text-4xl mb-8;
+        }
+
+        .feature-list {
+          @apply 
+            flex 
+            justify-center 
+            gap-8
+            ;
+        }
+
+        .feature-item {
+          @apply max-w-[300px] p-6 rounded-lg shadow-md bg-white;
+        }
+    /* Features */
+
+/* Landing-page */
+
+  .app-container {
+      @apply flex flex-col;
+  }
+
+  .content {
+      flex: 1 0 auto;
+  }
+
+
+/* Footer */
+.footer {
+    @apply 
+      flex-shrink-0 
+      pt-4 
+      pl-8 
+      text-center 
+      text-white 
+      bg-gray-800;
+}
+/* Footer */
